@@ -1,9 +1,11 @@
 
 module mycore
 (
-	input         clk,
+	input         sys_clk,
 	input         reset,
 	
+    input         cpu_clk,
+
 	input         pal,
 	input         scandouble,
 
@@ -14,20 +16,36 @@ module mycore
 	output reg    VBlank,
 	output reg    VSync,
 
-	output  [7:0] video
+	output  [7:0] R,
+	output  [7:0] G,
+	output  [7:0] B
 );
+
+reg         cpu_ce;
+reg [31:0]  a;
 
 reg   [9:0] hc;
 reg   [9:0] vc;
 reg   [9:0] vvc;
-reg  [63:0] rnd_reg;
+reg [31:0]  pix;
 
-wire  [5:0] rnd_c = {rnd_reg[0],rnd_reg[1],rnd_reg[2],rnd_reg[2],rnd_reg[2],rnd_reg[2]};
-wire [63:0] rnd;
+initial cpu_ce = 0;
 
-lfsr random(rnd);
+always @(posedge cpu_clk) begin
+  cpu_ce <= ~cpu_ce;
+  reset_cpu <= reset | VBlank;
+end
 
-always @(posedge clk) begin
+mach mach
+  (
+   .CLK(cpu_clk),
+   .CE(cpu_ce),
+   .RESn(~reset_cpu),
+
+   .A(a)
+   );
+
+always @(posedge sys_clk) begin
 	if(scandouble) ce_pix <= 1;
 		else ce_pix <= ~ce_pix;
 
@@ -47,12 +65,10 @@ always @(posedge clk) begin
 		end else begin
 			hc <= hc + 1'd1;
 		end
-
-		rnd_reg <= rnd;
 	end
 end
 
-always @(posedge clk) begin
+always @(posedge sys_clk) begin
 	if (hc == 529) HBlank <= 1;
 		else if (hc == 0) HBlank <= 0;
 
@@ -78,10 +94,12 @@ always @(posedge clk) begin
 	if (hc == 590) HSync <= 0;
 end
 
-reg  [7:0] cos_out;
-wire [5:0] cos_g = cos_out[7:3]+6'd32;
-cos cos(vvc + {vc>>scandouble, 2'b00}, cos_out);
+always @(posedge sys_clk) begin
+  pix <= a;
+end
 
-assign video = (cos_g >= rnd_c) ? {cos_g - rnd_c, 2'b00} : 8'd0;
+assign R = pix[31:24];
+assign G = pix[15:8];
+assign B = pix[7:0];
 
 endmodule

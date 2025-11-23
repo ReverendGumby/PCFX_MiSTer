@@ -208,7 +208,7 @@ assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
 
 `include "build_id.v" 
 localparam CONF_STR = {
-	"MyCore;;",
+	"Test_V810;;",
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"O[2],TV Mode,NTSC,PAL;",
@@ -282,9 +282,11 @@ wire [7:0] video;
 
 mycore mycore
 (
-	.clk(clk_sys),
+	.sys_clk(clk_sys),
 	.reset(reset),
 	
+    .cpu_clk(CLK_50M),
+
 	.pal(status[2]),
 	.scandouble(forced_scandoubler),
 
