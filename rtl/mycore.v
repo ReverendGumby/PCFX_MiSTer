@@ -1,3 +1,6 @@
+// Copyright (c) 2025 David Hunter
+//
+// This program is GPL licensed. See COPYING for the full license.
 
 module mycore
 (
