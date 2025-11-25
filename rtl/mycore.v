@@ -41,14 +41,14 @@ wire        rom_readyn;
 
 reg   [9:0] hc;
 reg   [9:0] vc;
-reg   [9:0] vvc;
+reg   [7:0] fc;
 reg [31:0]  pix;
 
 initial cpu_ce = 0;
 
 always @(posedge cpu_clk) begin
   cpu_ce <= ~cpu_ce;
-  reset_cpu <= reset | VBlank;
+  reset_cpu <= reset | &fc;
 end
 
 always @(posedge cpu_clk) if (cpu_ce) begin
@@ -98,13 +98,14 @@ always @(posedge sys_clk) begin
 	if(reset) begin
 		hc <= 0;
 		vc <= 0;
+        fc <= 0;
 	end
 	else if(ce_pix) begin
 		if(hc == 637) begin
 			hc <= 0;
 			if(vc == (pal ? (scandouble ? 623 : 311) : (scandouble ? 523 : 261))) begin 
 				vc <= 0;
-				vvc <= vvc + 9'd6;
+				fc <= fc + 1'd1;
 			end else begin
 				vc <= vc + 1'd1;
 			end
