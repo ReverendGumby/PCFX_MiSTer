@@ -51,18 +51,6 @@ wire [31:0]     ram_do;
 
 logic           unk_cen;
 
-initial begin
-    $timeformat(-9, 0, " ns", 1);
-
-`ifndef VERILATOR
-    $dumpfile("bios_tb.vcd");
-    $dumpvars();
-`else
-    $dumpfile("bios_tb.verilator.fst");
-    $dumpvars();
-`endif
-end
-
 v810_exec dut
   (
    .RESn(RESn),

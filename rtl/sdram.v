@@ -3,6 +3,7 @@
 //
 // sdram controller implementation
 // Copyright (c) 2018 Sorgelig
+// Copyright (c) 2025 David Hunter
 //
 // Based on sdram module by Till Harbaum
 // 
@@ -20,11 +21,14 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. 
 //
 
+/* verilator lint_off CASEX */
+/* verilator lint_off CASEINCOMPLETE */
+
 module sdram
 (
 
 	// interface to the MT48LC16M16 chip
-	inout  reg [15:0] SDRAM_DQ,   // 16 bit bidirectional data bus
+	inout      [15:0] SDRAM_DQ,   // 16 bit bidirectional data bus
 	output reg [12:0] SDRAM_A,    // 13 bit multiplexed address bus
 	output            SDRAM_DQML, // byte mask
 	output            SDRAM_DQMH, // byte mask
@@ -67,15 +71,15 @@ localparam NO_WRITE_BURST = 1'b1;   // 0= write burst enabled, 1=only single acc
 
 localparam MODE = { 3'b000, NO_WRITE_BURST, OP_MODE, CAS_LATENCY, ACCESS_TYPE, BURST_LENGTH}; 
 
-localparam STATE_IDLE  = 4'd0;   // first state in cycle
-localparam STATE_START = 4'd1;   // state in which a new command can be started
-localparam STATE_CONT  = STATE_START+RASCAS_DELAY; // 4 command can be continued
-localparam STATE_LAST  = 4'd7;   // last state in cycle
-localparam STATE_READY = STATE_CONT+CAS_LATENCY+2;
+localparam [3:0] STATE_IDLE  = 4'd0;   // first state in cycle
+localparam [3:0] STATE_START = 4'd1;   // state in which a new command can be started
+localparam [3:0] STATE_CONT  = STATE_START+RASCAS_DELAY; // 4 command can be continued
+localparam [3:0] STATE_LAST  = 4'd7;   // last state in cycle
+localparam [3:0] STATE_READY = STATE_CONT+CAS_LATENCY+2;
 
 
-reg  [3:0] q;
-reg [22:0] a;
+reg  [3:0] q = 0;
+reg [24:0] a;
 reg  [1:0] bank;
 reg [15:0] data;
 reg        wr;
@@ -96,7 +100,7 @@ always @(posedge clk) begin
 		if(we_ack != we_req || we) begin
 			ram_req <= 1;
 			wr <= 1;
-			{bank,a} <= waddr;
+			a <= waddr;
 			data <= din;
 			b <= we;
 		end
@@ -105,7 +109,7 @@ always @(posedge clk) begin
 			rd_rdy <= 0;
 			ram_req <= 1;
 			wr <= 0;
-			{bank,a} <= raddr;
+			a <= raddr;
 			b <= 0;
 		end
 	end
@@ -125,10 +129,10 @@ localparam MODE_LDM    = 2'b10;
 localparam MODE_PRE    = 2'b11;
 
 // initialization 
-reg [1:0] mode;
+reg [1:0] 	mode;
+reg [4:0] 	reset=5'h1f;
+reg 		init_old=0;
 always @(posedge clk) begin
-	reg [4:0] reset=5'h1f;
-	reg init_old=0;
 	init_old <= init;
 
 	if(init_old & ~init) reset <= 5'h1f;
@@ -152,14 +156,17 @@ localparam CMD_PRECHARGE       = 3'b010;
 localparam CMD_AUTO_REFRESH    = 3'b001;
 localparam CMD_LOAD_MODE       = 3'b000;
 
+reg [15:0] dqout;
+reg        dqoe;
+
 // SDRAM state machines
 always @(posedge clk) begin
 	reg [15:0] data_reg;
 
-	SDRAM_DQ <= 16'hZZZZ;
+    dqoe <= 0;
 	casex({ram_req,wr,mode,q})
 		{2'b1X, MODE_NORMAL, STATE_START}: {SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE} <= CMD_ACTIVE;
-		{2'b11, MODE_NORMAL, STATE_CONT }: {SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE, SDRAM_DQ} <= {CMD_WRITE, data};
+		{2'b11, MODE_NORMAL, STATE_CONT }: {SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE, dqoe, dqout} <= {CMD_WRITE, 1'b1, data};
 		{2'b10, MODE_NORMAL, STATE_CONT }: {SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE} <= CMD_READ;
 		{2'b0X, MODE_NORMAL, STATE_START}: {SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE} <= CMD_AUTO_REFRESH;
 
@@ -172,8 +179,8 @@ always @(posedge clk) begin
 
 	if(mode == MODE_NORMAL) begin
 		casex(q)
-			STATE_START: SDRAM_A <= a[21:9];
-			STATE_CONT:  SDRAM_A <= {~a[0]&wr&b,a[0]&wr&b,2'b10, a[22], a[8:1]};
+			STATE_START: SDRAM_A <= addr_to_row(a);
+			STATE_CONT:  SDRAM_A <= {~a[0]&wr&b,a[0]&wr&b,1'b1, addr_to_col(a)};
 		endcase;
 	end
 	else if(mode == MODE_LDM && q == STATE_START) SDRAM_A <= MODE;
@@ -181,9 +188,23 @@ always @(posedge clk) begin
 	else SDRAM_A <= 0;
 
 	data_reg <= SDRAM_DQ;
-	if(q == STATE_START) SDRAM_BA <= (mode == MODE_NORMAL) ? bank : 2'b00;
+	if(q == STATE_START) SDRAM_BA <= (mode == MODE_NORMAL) ? addr_to_bank(a) : 2'b00;
 	if(q == STATE_READY && ~wr && ram_req) dout <= data_reg;
 end
+
+function [1:0] addr_to_bank(input [24:0] a);
+    addr_to_bank = a[24:23];
+endfunction
+
+function [12:0] addr_to_row(input [24:0] a);
+    addr_to_row = a[21:9];
+endfunction
+
+function [9:0] addr_to_col(input [24:0] a);
+    addr_to_col = {1'b0, a[22], a[8:1]};
+endfunction
+
+assign SDRAM_DQ = dqoe ? dqout : 16'hZZZZ;
 
 altddio_out
 #(
