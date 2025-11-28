@@ -234,7 +234,7 @@ wire  [7:0] ioctl_index;
 wire        ioctl_wr;
 wire [24:0] ioctl_addr;
 wire [15:0] ioctl_dout;
-reg         ioctl_wait;
+wire        ioctl_wait;
 
 hps_io #(.CONF_STR(CONF_STR), .WIDE(1)) hps_io
 (
@@ -279,60 +279,6 @@ pll pll
 
 wire reset = RESET | status[0] | buttons[1];
 
-/////////////////////////   MEMORY   /////////////////////////
-
-wire        sdram_clkref;
-wire [24:0] sdram_raddr;
-wire [15:0] sdram_dout;
-wire        sdram_rd, sdram_rd_rdy;
-
-reg  [23:0] romwr_a;
-wire [15:0] romwr_d = ioctl_dout;
-reg         rom_wr = 0;
-wire        romwr_ack;
-
-sdram sdram
-(
-	.*,
-
-	.init(~pll_locked),
-	.clk(clk_ram),
-	.clkref(sdram_clkref),
-
-	.waddr(romwr_a),
-	.din(romwr_d),
-	.we('0),
-	.we_req(rom_wr),
-	.we_ack(romwr_ack),
-
-	.raddr(sdram_raddr),
-	.rd(sdram_rd),
-	.rd_rdy(sdram_rd_rdy),
-	.dout(sdram_dout)
-);
-
-
-always @(posedge clk_sys) begin
-	reg old_download, old_reset;
-
-	old_download <= rombios_download;
-	old_reset <= reset;
-
-	if(~old_reset && reset) ioctl_wait <= 0;
-	if(~old_download && rombios_download) begin
-		romwr_a <= 0;
-	end
-	else begin
-		if(ioctl_wr & rombios_download) begin
-			ioctl_wait <= 1;
-			rom_wr <= ~rom_wr;
-		end else if(ioctl_wait && (rom_wr == romwr_ack)) begin
-			ioctl_wait <= 0;
-			romwr_a <= romwr_a + 2'd2;
-		end
-	end
-end
-
 //////////////////////////////////////////////////////////////////////
 
 wire HBlank;
@@ -343,20 +289,33 @@ wire ce_pix;
 
 mycore mycore
 (
-	.sys_clk(clk_sys),
+	.clk_sys(clk_sys),
+    .clk_cpu(CLK_50M),
+    .clk_ram(clk_ram),
 	.reset(reset | rombios_download),
-	
-    .cpu_clk(CLK_50M),
+	.pll_locked(pll_locked),
 
 	.pal(status[2]),
 	.scandouble(forced_scandoubler),
 
-    .sdram_clk(clk_ram),
-    .sdram_clkref(sdram_clkref),
-	.sdram_rd(sdram_rd),
-	.sdram_rd_rdy(sdram_rd_rdy),
-	.sdram_raddr(sdram_raddr),
-	.sdram_dout(sdram_dout),
+	.ioctl_download(ioctl_download),
+	.ioctl_index(ioctl_index),
+	.ioctl_wr(ioctl_wr),
+	.ioctl_addr(ioctl_addr),
+	.ioctl_dout(ioctl_dout),
+	.ioctl_wait(ioctl_wait),
+
+    .SDRAM_CLK(SDRAM_CLK),
+    .SDRAM_CKE(SDRAM_CKE),
+    .SDRAM_A(SDRAM_A),
+    .SDRAM_BA(SDRAM_BA),
+    .SDRAM_DQ(SDRAM_DQ),
+    .SDRAM_DQML(SDRAM_DQML),
+    .SDRAM_DQMH(SDRAM_DQMH),
+    .SDRAM_nCS(SDRAM_nCS),
+    .SDRAM_nCAS(SDRAM_nCAS),
+    .SDRAM_nRAS(SDRAM_nRAS),
+    .SDRAM_nWE(SDRAM_nWE),
 
 	.ce_pix(ce_pix),
 

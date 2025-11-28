@@ -4,7 +4,6 @@ altddio_out.v
 ../mycore.v
 ../memif_sdram.sv
 ../sdram.v
-../ram.sv
 ../mach.sv
 
 ../v810/v810_exec.sv

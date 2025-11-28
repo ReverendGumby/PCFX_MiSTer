@@ -17,6 +17,14 @@ module mach
    output        ROM_CEn,
    input         ROM_READYn,
 
+   output [20:0] RAM_A,
+   output [31:0] RAM_DI,
+   input [31:0]  RAM_DO,
+   output        RAM_CEn,
+   output        RAM_WEn,
+   output [3:0]  RAM_BEn,
+   input         RAM_READYn,
+
    output [31:0] A
    );
 
@@ -48,6 +56,7 @@ logic           rom_readyn;
 
 logic           ram_cen;
 wire [31:0]     ram_do;
+logic           ram_readyn;
 
 logic           unk_cen;
 
@@ -120,23 +129,14 @@ always @* begin
         mem_d_i = '0;
 end
 
-assign mem_readyn = unk_cen & rom_readyn & ram_cen;
+assign mem_readyn = unk_cen & rom_readyn & ram_readyn;
 assign mem_szrqn = ~unk_cen | rom_cen;
 
 assign rom_do = ROM_DO;
 assign rom_readyn = rom_cen | ROM_READYn;
 
-ram #(4, 32) dmem
-  (
-   .CLK(CLK),
-   .nCE(ram_cen),
-   .nWE(mem_rw),
-   .nOE(~mem_rw),
-   .nBE(mem_ben),
-   .A(mem_a[5:2]),
-   .DI(mem_d_o),
-   .DO(ram_do)
-   );
+assign ram_do = RAM_DO;
+assign ram_readyn = ram_cen | RAM_READYn;
 
 assign ram_cen = ~(~mem_mrqn & ~mem_a[31]);
 assign rom_cen = ~(~mem_mrqn & (mem_a[31:20] == 12'hFFF));
@@ -146,6 +146,12 @@ assign CPU_BCYSTn = mem_bcystn;
 
 assign ROM_CEn = rom_cen;
 assign ROM_A = mem_a[19:0];
+
+assign RAM_CEn = ram_cen;
+assign RAM_A = mem_a[20:0];
+assign RAM_DI = mem_d_o;
+assign RAM_WEn = mem_rw;
+assign RAM_BEn = mem_ben;
 
 assign A = mem_a;
 

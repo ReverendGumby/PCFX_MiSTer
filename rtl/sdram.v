@@ -48,42 +48,47 @@ module sdram
 	input      [24:0] raddr,      // 25 bit byte address
 	input             rd,         // cpu/chipset requests read
 	output reg        rd_rdy = 0,
-	output reg [15:0] dout,			// data output to chipset/cpu
+	output reg [31:0] dout,			// data output to chipset/cpu
 
 	input      [24:0] waddr,      // 25 bit byte address
-	input      [15:0] din,			// data input from chipset/cpu
+	input      [31:0] din,			// data input from chipset/cpu
+    input       [3:0] be,         // byte enable (be[0] => din[7:0])
 	input             we,         // cpu/chipset write
+	output reg        we_rdy = 0,
 	input             we_req,     // cpu/chipset requests write
 	output reg        we_ack = 0
 );
 
 assign SDRAM_nCS = 0;
 assign SDRAM_CKE = 1;
-assign {SDRAM_DQMH,SDRAM_DQML} = SDRAM_A[12:11];
 
 // no burst configured
 localparam RASCAS_DELAY   = 3'd2;   // tRCD=20ns -> 3 cycles@128MHz
-localparam BURST_LENGTH   = 3'b000; // 000=1, 001=2, 010=4, 011=8
+localparam BURST_LENGTH   = 3'b001; // 000=1, 001=2, 010=4, 011=8
 localparam ACCESS_TYPE    = 1'b0;   // 0=sequential, 1=interleaved
 localparam CAS_LATENCY    = 3'd2;   // 2/3 allowed
 localparam OP_MODE        = 2'b00;  // only 00 (standard operation) allowed
-localparam NO_WRITE_BURST = 1'b1;   // 0= write burst enabled, 1=only single access write
+localparam WRITE_BURST_LEN = 1'b0;   // 0= write burst enabled, 1=only single access write
 
-localparam MODE = { 3'b000, NO_WRITE_BURST, OP_MODE, CAS_LATENCY, ACCESS_TYPE, BURST_LENGTH}; 
+localparam MODE = { 3'b000, WRITE_BURST_LEN, OP_MODE, CAS_LATENCY, ACCESS_TYPE, BURST_LENGTH};
 
 localparam [3:0] STATE_IDLE  = 4'd0;   // first state in cycle
 localparam [3:0] STATE_START = 4'd1;   // state in which a new command can be started
 localparam [3:0] STATE_CONT  = STATE_START+RASCAS_DELAY; // 4 command can be continued
 localparam [3:0] STATE_LAST  = 4'd7;   // last state in cycle
-localparam [3:0] STATE_READY = STATE_CONT+CAS_LATENCY+2;
+localparam [3:0] STATE_READY = STATE_READN+1;
+localparam [3:0] STATE_READ0 = STATE_CONT+CAS_LATENCY+1; // first read cycle
+localparam [3:0] STATE_READN = STATE_READ0+(1<<BURST_LENGTH)-1; // last read cycle
+localparam [3:0] STATE_WRIT0 = STATE_CONT;               // first write cycle
+localparam [3:0] STATE_WRITN = STATE_CONT+(1<<BURST_LENGTH)-1; // last write cycle
 
 
 reg  [3:0] q = 0;
 reg [24:0] a;
 reg  [1:0] bank;
-reg [15:0] data;
+reg [31:0] data;
 reg        wr;
-reg        b;
+reg  [3:0] bm=0;
 reg        ram_req=0;
 
 // access manager
@@ -94,15 +99,17 @@ always @(posedge clk) begin
 
 	if(q==STATE_IDLE) begin
 		rd_rdy <= 1;
+		we_rdy <= 1;
 		ram_req <= 0;
 		wr <= 0;
 
 		if(we_ack != we_req || we) begin
 			ram_req <= 1;
 			wr <= 1;
+            we_rdy <= 0;
 			a <= waddr;
 			data <= din;
-			b <= we;
+			bm <= we ? ~be : 0;
 		end
 		else
 		if(rd) begin
@@ -110,13 +117,17 @@ always @(posedge clk) begin
 			ram_req <= 1;
 			wr <= 0;
 			a <= raddr;
-			b <= 0;
+			bm <= 0;
 		end
 	end
 
 	if (q == STATE_READY && ram_req) begin
-		if(wr) we_ack <= we_req;
-		else   rd_rdy <= 1;
+		if(wr) begin
+            we_ack <= we_req;
+            we_rdy <= 1;
+        end
+		else
+            rd_rdy <= 1;
 	end
 
 	q <= q + 1'd1;
@@ -156,17 +167,17 @@ localparam CMD_PRECHARGE       = 3'b010;
 localparam CMD_AUTO_REFRESH    = 3'b001;
 localparam CMD_LOAD_MODE       = 3'b000;
 
-reg [15:0] dqout;
+reg [31:0] dqout;
 reg        dqoe;
+reg [3:0]  dqm;
 
 // SDRAM state machines
 always @(posedge clk) begin
-	reg [15:0] data_reg;
+	reg [31:0] data_reg;
 
-    dqoe <= 0;
 	casex({ram_req,wr,mode,q})
 		{2'b1X, MODE_NORMAL, STATE_START}: {SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE} <= CMD_ACTIVE;
-		{2'b11, MODE_NORMAL, STATE_CONT }: {SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE, dqoe, dqout} <= {CMD_WRITE, 1'b1, data};
+		{2'b11, MODE_NORMAL, STATE_CONT }: {SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE} <= CMD_WRITE;
 		{2'b10, MODE_NORMAL, STATE_CONT }: {SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE} <= CMD_READ;
 		{2'b0X, MODE_NORMAL, STATE_START}: {SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE} <= CMD_AUTO_REFRESH;
 
@@ -177,19 +188,36 @@ always @(posedge clk) begin
 		                          default: {SDRAM_nRAS, SDRAM_nCAS, SDRAM_nWE} <= CMD_NOP;
 	endcase
 
+    dqoe <= 0;
+    if(q>=STATE_WRIT0 && q<=STATE_WRITN && wr && ram_req) begin
+        dqoe <= 1'b1;
+        if (q==STATE_WRIT0) begin
+            dqout <= data;
+            dqm <= bm;
+        end
+        else begin
+            dqout <= {16'b0, data[31:16]};
+            dqm <= {2'b0, bm[3:2]};
+        end
+    end
+    else
+        dqm <= '0;
+
 	if(mode == MODE_NORMAL) begin
 		casex(q)
 			STATE_START: SDRAM_A <= addr_to_row(a);
-			STATE_CONT:  SDRAM_A <= {~a[0]&wr&b,a[0]&wr&b,1'b1, addr_to_col(a)};
+			STATE_CONT:  SDRAM_A <= {2'b00, 1'b1, addr_to_col(a)};
 		endcase;
 	end
 	else if(mode == MODE_LDM && q == STATE_START) SDRAM_A <= MODE;
 	else if(mode == MODE_PRE && q == STATE_START) SDRAM_A <= 13'b0010000000000;
 	else SDRAM_A <= 0;
 
-	data_reg <= SDRAM_DQ;
 	if(q == STATE_START) SDRAM_BA <= (mode == MODE_NORMAL) ? addr_to_bank(a) : 2'b00;
-	if(q == STATE_READY && ~wr && ram_req) dout <= data_reg;
+    if (~wr && ram_req) begin
+        if(q >= STATE_READ0 && q <= STATE_READN) data_reg <= {SDRAM_DQ, data_reg[31:16]};
+	    if(q == STATE_READY) dout <= data_reg;
+    end
 end
 
 function [1:0] addr_to_bank(input [24:0] a);
@@ -204,7 +232,8 @@ function [9:0] addr_to_col(input [24:0] a);
     addr_to_col = {1'b0, a[22], a[8:1]};
 endfunction
 
-assign SDRAM_DQ = dqoe ? dqout : 16'hZZZZ;
+assign SDRAM_DQ = dqoe ? dqout[15:0] : 16'hZZZZ;
+assign {SDRAM_DQMH,SDRAM_DQML} = dqm[1:0];
 
 altddio_out
 #(
