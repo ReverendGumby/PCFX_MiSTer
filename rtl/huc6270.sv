@@ -44,6 +44,7 @@ logic [3:0]     ie;
 always @(posedge CLK) if (CE) begin
     if (~RESn) begin
         rsel <= '0;
+        ie <= '0;
     end
     else begin
         if (~CSn & ~WRn) begin
@@ -54,7 +55,7 @@ always @(posedge CLK) if (CE) begin
                 1'b1: begin
                     case (rsel)
                         5'h05:  begin
-                            ie = DI[3:0];
+                            ie <= DI[3:0];
                         end
                         default: ;
                     endcase
