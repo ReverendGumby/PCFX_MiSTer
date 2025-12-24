@@ -13,18 +13,18 @@ module dpram
    (
     input                       clock,
     input [addr_width-1:0]      address_a,
-    input [data_width-1:0]      data_a = '0,
-    input                       enable_a = '1,
-    input                       wren_a = '0,
+    input [data_width-1:0]      data_a,
+    input                       enable_a,
+    input                       wren_a,
     output reg [data_width-1:0] q_a,
-    input                       cs_a = '1,
+    input                       cs_a,
 
-    input [addr_width-1:0]      address_b = '0,
-    input [data_width-1:0]      data_b = '0,
-    input                       enable_b = '1,
-    input                       wren_b = '0,
+    input [addr_width-1:0]      address_b,
+    input [data_width-1:0]      data_b,
+    input                       enable_b,
+    input                       wren_b,
     output reg [data_width-1:0] q_b,
-    input                       cs_b = '1
+    input                       cs_b
     );
 
 reg [data_width-1:0] mem [0:(1<<addr_width)-1];
