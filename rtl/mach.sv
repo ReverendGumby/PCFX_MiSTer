@@ -61,8 +61,8 @@ wire [3:0]      io_int;
 
 logic           unk_cen;
 
-logic           huc6261_csn;
-logic [15:0]    huc6261_do;
+logic           vce_csn;
+logic [15:0]    vce_do;
 
 logic           vdc0_csn;
 logic           vdc0_busyn;
@@ -84,6 +84,7 @@ wire [15:0]     vram1_a;
 wire [15:0]     vram1_di, vram1_do;
 wire            vram1_we;
 
+logic [30:1]    ga_ioa;
 logic           ga_wrn, ga_rdn;
 logic           ga_csn;
 logic [15:0]    ga_do;
@@ -91,6 +92,26 @@ logic [15:0]    ga_do;
 logic           pce, pce_negedge;
 logic           hs_posedge, hs_negedge;
 logic           vs_posedge, vs_negedge;
+
+wire            mmc_csn;
+logic           mmc_busyn;
+wire            mmc_irqn;
+wire [15:0]     mmc_do;
+wire [7:0]      mmc_scsi_do;
+wire            mmc_scsi_doe;
+
+logic [7:0]     scsi_data;
+wire            scsi_atnn, scsi_bsyn, scsi_ackn, scsi_rstn,  scsi_msgn,
+                scsi_seln, scsi_cdn, scsi_reqn, scsi_ion;
+
+wire [7:0]      scsi_cd_do;
+logic [7:0]     scsi_cd_status;
+logic           scsi_cd_stat_get;
+logic [95:0]    scsi_cd_command;
+wire            scsi_cd_comm_send;
+logic [7:0]     scsi_cd_cd_data;
+logic           scsi_cd_cd_wr;
+logic           scsi_cd_cd_data_end;
 
 v810 cpu
     (
@@ -117,7 +138,7 @@ v810 cpu
 
 assign io_int[0] = '0; //huc6273_int;
 assign io_int[1] = ~vdc1_irqn;
-assign io_int[2] = '0; //huc6272_int;
+assign io_int[2] = ~mmc_irqn;
 assign io_int[3] = ~vdc0_irqn;
 
 fx_ga ga
@@ -129,6 +150,7 @@ fx_ga ga
      .A(cpu_a),
      .DI(cpu_d_o[15:0]),
      .DO(ga_do),
+     .BEn(cpu_ben),
      .ST(cpu_st),
      .DAn(cpu_dan),
      .MRQn(cpu_mrqn),
@@ -142,17 +164,22 @@ fx_ga ga
      .IO_CEn(io_cen),
 
      .FX_GA_CSn(ga_csn),
-     .HUC6261_CSn(huc6261_csn),
+     .PSG_CSn(),
+     .VPU_CSn(),
+     .VCE_CSn(vce_csn),
      .VDC0_CSn(vdc0_csn),
      .VDC1_CSn(vdc1_csn),
+     .MMC_CSn(mmc_csn),
 
      .ROM_READYn(rom_readyn),
      .RAM_READYn(ram_readyn),
 
+     .IOA(ga_ioa),
      .WRn(ga_wrn),
      .RDn(ga_rdn),
      .VDC0_BUSYn(vdc0_busyn),
      .VDC1_BUSYn(vdc1_busyn),
+     .MMC_BUSYn(mmc_busyn),
 
      .DINT(io_int),
 
@@ -161,18 +188,18 @@ fx_ga ga
      .CNMIn(cpu_nmin)
      );
 
-huc6261 huc6261
+huc6261 vce
     (
      .RESn(RESn),
      .CLK(CLK),
      .CE(CE),            // TODO: Divide .CE by 5 for 5MHz pixel clock
 
-     .CSn(huc6261_csn),
+     .CSn(vce_csn),
      .WRn(ga_wrn),
      .RDn(ga_rdn),
-     .A2(cpu_a[2]),
+     .A2(ga_ioa[2]),
      .DI(cpu_d_o[15:0]),
-     .DO(huc6261_do),
+     .DO(vce_do),
 
      .PCE(pce),
      .PCE_NEGEDGE(pce_negedge),
@@ -190,7 +217,7 @@ huc6270 vdc0
      .CPU_CE(CE),
 
      .BYTEWORD('0),
-     .A({cpu_a[2], 1'b0}),
+     .A({ga_ioa[2], 1'b0}),
      .DI(cpu_d_o[15:0]),
      .DO(vdc0_do),
      .CS_N(vdc0_csn),
@@ -244,7 +271,7 @@ huc6270 vdc1
      .CPU_CE(CE),
 
      .BYTEWORD('0),
-     .A({cpu_a[2], 1'b0}),
+     .A({ga_ioa[2], 1'b0}),
      .DI(cpu_d_o[15:0]),
      .DO(vdc1_do),
      .CS_N(vdc1_csn),
@@ -290,6 +317,68 @@ dpram #(.addr_width(15), .data_width(16), .disable_value(0)) vram1
      .cs_b('1)
      );
 
+huc6272 mmc
+    (
+     .CLK(CLK),
+     .RESn(RESn),
+     .CE(CE),
+
+     .A(ga_ioa[2:1]),
+     .DI(cpu_d_o[15:0]),
+     .DO(mmc_do),
+     .CSn(mmc_csn),
+     .WRn(ga_wrn),
+     .RDn(ga_rdn),
+     .BUSYn(mmc_busyn),
+     .IRQn(mmc_irqn),
+
+     .SCSI_DI(scsi_data),
+     .SCSI_DO(mmc_scsi_do),
+     .SCSI_DOE(mmc_scsi_doe),
+     .SCSI_ATNn(scsi_atnn),
+     .SCSI_BSYn(scsi_bsyn),
+     .SCSI_ACKn(scsi_ackn),
+     .SCSI_RSTn(scsi_rstn),
+     .SCSI_MSGn(scsi_msgn),
+     .SCSI_SELn(scsi_seln),
+     .SCSI_CDn(scsi_cdn),
+     .SCSI_REQn(scsi_reqn),
+     .SCSI_IOn(scsi_ion)
+     );
+
+// SCSI <-> CD bridge
+scsi scsi_cd
+    (
+     .RESET_N(RESn),
+     .CLK(CLK),
+     .DBI(scsi_data),
+     .DBO(scsi_cd_do),
+     .SEL_N(scsi_seln),
+     .ACK_N(scsi_ackn),
+     .RST_N(scsi_rstn),
+     .BSY_N(scsi_bsyn),
+     .REQ_N(scsi_reqn),
+     .MSG_N(scsi_msgn),
+     .CD_N(scsi_cdn),
+     .IO_N(scsi_ion),
+     .STATUS(scsi_cd_status),
+     .MESSAGE('0),
+     .STAT_GET(scsi_cd_stat_get),
+     .COMMAND(scsi_cd_command),
+     .COMM_SEND(scsi_cd_comm_send),
+     .DOUT_REQ('0),
+     .DOUT(),
+     .DOUT_SEND(),
+     .CD_DATA(scsi_cd_cd_data),
+     .CD_WR(scsi_cd_cd_wr),
+     .CD_DATA_END(scsi_cd_cd_data_end),
+     .STOP_CD_SND(),
+     .DBG_DATAIN_CNT()
+     );
+
+//////////////////////////////////////////////////////////////////////
+// CPU memory / I/O bus
+
 always @* begin
     if (~rom_cen)
         cpu_d_i = {16'b0, rom_do};
@@ -302,14 +391,16 @@ always @* begin
 end
 
 always @* begin
-    if (~huc6261_csn)
-        io_do = huc6261_do;
+    if (~vce_csn)
+        io_do = vce_do;
     else if (~vdc0_csn)
         io_do = vdc0_do;
     else if (~vdc1_csn)
         io_do = vdc1_do;
     else if (~ga_csn)
         io_do = ga_do;
+    else if (~mmc_csn)
+        io_do = mmc_do;
     else
         io_do = '0;
 end
@@ -319,8 +410,10 @@ assign rom_readyn = rom_cen | ROM_READYn;
 
 assign ram_do = RAM_DO;
 assign ram_readyn = ram_cen | RAM_READYn;
-
 assign CPU_BCYSTn = cpu_bcystn;
+
+//////////////////////////////////////////////////////////////////////
+// Core memory interface
 
 assign ROM_CEn = rom_cen;
 assign ROM_A = cpu_a[19:0];
@@ -331,13 +424,43 @@ assign RAM_DI = cpu_d_o;
 assign RAM_WEn = cpu_rw;
 assign RAM_BEn = cpu_ben;
 
+//////////////////////////////////////////////////////////////////////
+// SCSI interface
+
+initial scsi_data = '0;
+
+always @(posedge CLK) begin
+    if (mmc_scsi_doe)
+        scsi_data <= mmc_scsi_do;
+    else
+        scsi_data <= scsi_cd_do;
+end
+
+fake_cd fake_cd
+    (
+     .CLK(CLK),
+     .RESn(RESn),
+
+     .STAT_GET(scsi_cd_stat_get),
+     .COMMAND(scsi_cd_command),
+     .COMM_SEND(scsi_cd_comm_send),
+     .STATUS(scsi_cd_status),
+     .CD_DATA(scsi_cd_cd_data),
+     .CD_WR(scsi_cd_cd_wr)
+     );
+
+//////////////////////////////////////////////////////////////////////
+// Video interface
+
 assign A = cpu_a;
 assign VDC0_VD = vdc0_vd;
 assign VDC1_VD = vdc1_vd;
 
+//////////////////////////////////////////////////////////////////////
+
 always @(posedge CLK) if (1 && CE) begin
     if (~io_cen & ~cpu_dan)
-        $display("%x %s %x", A, (cpu_rw ? "R" : "w"),
+        $display("%t: %x %s %x", $realtime,A, (cpu_rw ? "R" : "w"), 
                  (cpu_rw ? cpu_d_i[15:0] : cpu_d_o[15:0]));
 end
 

@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Wed Dec 24 07:26:59 2025
+[*] Sat Dec 27 00:06:33 2025
 [*]
 [dumpfile] "/Users/dhunter/src/mister/Test_V810_MiSTer/rtl/tb/mycore_tb.verilator.fst"
-[dumpfile_mtime] "Wed Dec 24 07:08:19 2025"
-[dumpfile_size] 65906593
+[dumpfile_mtime] "Sat Dec 27 00:04:34 2025"
+[dumpfile_size] 23202818
 [savefile] "/Users/dhunter/src/mister/Test_V810_MiSTer/rtl/tb/mycore_tb.verilator.gtkw"
-[timestart] 0
+[timestart] 184525900
 [size] 1333 600
 [pos] -1 -1
-*-27.844255 72452780 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-15.592772 184606540 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -39,11 +39,10 @@
 [treeopen] mycore_tb.
 [treeopen] mycore_tb.mycore.
 [treeopen] mycore_tb.mycore.mach.
-[treeopen] mycore_tb.mycore.mach.cpu.
-[treeopen] mycore_tb.mycore.mach.ga.
-[treeopen] mycore_tb.mycore.mach.huc6261.
+[treeopen] mycore_tb.mycore.mach.cpu.eu.
+[treeopen] mycore_tb.mycore.mach.vce.
 [sst_width] 255
-[signals_width] 228
+[signals_width] 410
 [sst_expanded] 1
 [sst_vpaned_height] 159
 @22
@@ -51,6 +50,7 @@ mycore_tb.mycore.mach.cpu_a[31:0]
 mycore_tb.mycore.mach.cpu_d_i[31:0]
 mycore_tb.mycore.mach.cpu_d_o[31:0]
 @28
+mycore_tb.mycore.mach.cpu_rw
 mycore_tb.mycore.mach.ram_cen
 mycore_tb.mycore.mach.rom_cen
 mycore_tb.mycore.mach.io_cen
@@ -62,24 +62,30 @@ mycore_tb.mycore.mach.ga_wrn
 mycore_tb.mycore.mach.cpu.INT
 @22
 mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+@28
+mycore_tb.mycore.mach.cpu.SZRQn
+@22
+mycore_tb.mycore.mach.cpu.eu.DA[31:0]
 @200
 -ga
 @28
-mycore_tb.mycore.mach.ga.FX_GA_CSn
+mycore_tb.mycore.mach.ga.MRQn
+@29
+mycore_tb.mycore.mach.ga.MMC_CSn
 @22
 mycore_tb.mycore.mach.ga.isr[6:0]
 mycore_tb.mycore.mach.ga.imr[6:0]
 @200
--huc6261
+-vce
 @28
-mycore_tb.mycore.mach.huc6261.CSn
+mycore_tb.mycore.mach.vce.CSn
 @24
-mycore_tb.mycore.mach.huc6261.row[8:0]
+mycore_tb.mycore.mach.vce.row[8:0]
 @200
 -vdc0
 @28
 mycore_tb.mycore.mach.vdc0.CS_N
-@23
+@22
 mycore_tb.mycore.mach.vdc0.REGS[5][15:0]
 @28
 mycore_tb.mycore.mach.vdc0.IRQ_N
@@ -95,5 +101,74 @@ mycore_tb.mycore.mach.vdc1.BG_OUT
 mycore_tb.mycore.mach.vdc1.VDISP
 @22
 mycore_tb.mycore.mach.vdc1.VD[8:0]
+@200
+-mmc
+@28
+mycore_tb.mycore.mach.mmc.A[2:1]
+@22
+mycore_tb.mycore.mach.mmc.rsel[6:0]
+@800200
+-scsi
+@c00022
+mycore_tb.mycore.mach.mmc.SCSI_DI[7:0]
+@28
+(0)mycore_tb.mycore.mach.mmc.SCSI_DI[7:0]
+(1)mycore_tb.mycore.mach.mmc.SCSI_DI[7:0]
+(2)mycore_tb.mycore.mach.mmc.SCSI_DI[7:0]
+(3)mycore_tb.mycore.mach.mmc.SCSI_DI[7:0]
+(4)mycore_tb.mycore.mach.mmc.SCSI_DI[7:0]
+(5)mycore_tb.mycore.mach.mmc.SCSI_DI[7:0]
+(6)mycore_tb.mycore.mach.mmc.SCSI_DI[7:0]
+(7)mycore_tb.mycore.mach.mmc.SCSI_DI[7:0]
+@1401200
+-group_end
+@22
+mycore_tb.mycore.mach.mmc.SCSI_DO[7:0]
+@28
+mycore_tb.mycore.mach.mmc.SCSI_DOE
+mycore_tb.mycore.mach.mmc.SCSI_ATNn
+mycore_tb.mycore.mach.mmc.SCSI_BSYn
+mycore_tb.mycore.mach.mmc.SCSI_ACKn
+mycore_tb.mycore.mach.mmc.SCSI_RSTn
+mycore_tb.mycore.mach.mmc.SCSI_MSGn
+mycore_tb.mycore.mach.mmc.SCSI_SELn
+mycore_tb.mycore.mach.mmc.SCSI_CDn
+mycore_tb.mycore.mach.mmc.SCSI_REQn
+mycore_tb.mycore.mach.mmc.SCSI_IOn
+@200
+-
+@28
+mycore_tb.mycore.mach.mmc.scsi_dma_mode
+mycore_tb.mycore.mach.mmc.scsi_start_dma_rx
+mycore_tb.mycore.mach.mmc.scsi_dma_req
+mycore_tb.mycore.mach.mmc.scsi_assert_ack_dma
+@200
+-scsi_cd
+@28
+mycore_tb.mycore.mach.scsi_cd.RESET_N
+mycore_tb.mycore.mach.scsi_cd.RST_N
+@22
+mycore_tb.mycore.mach.scsi_cd.SP[3:0]
+@24
+mycore_tb.mycore.mach.scsi_cd.DELAY_COUNT[16:0]
+@22
+mycore_tb.mycore.mach.scsi_cd.COMMAND[95:0]
+@28
+mycore_tb.mycore.mach.scsi_cd.COMM_OUT
+@22
+mycore_tb.mycore.mach.scsi_cd.STATUS[7:0]
+@28
+mycore_tb.mycore.mach.scsi_cd.STAT_GET
+mycore_tb.mycore.mach.scsi_cd.STAT_PEND
+@22
+mycore_tb.mycore.mach.scsi_cd.STAT_COUNT[15:0]
+@28
+mycore_tb.mycore.mach.scsi_cd.CD_WR
+@22
+mycore_tb.mycore.mach.scsi_cd.CD_DATA[7:0]
+@28
+mycore_tb.mycore.mach.scsi_cd.CD_DATA_END
+@1000200
+-scsi
 [pattern_trace] 1
 [pattern_trace] 0

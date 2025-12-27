@@ -14,14 +14,14 @@ logic		reset;
 logic       CLK_50M, clk_sys, clk_ram;
 
 initial begin
-  $timeformat(-6, 0, " us", 1);
+    $timeformat(-6, 0, " us", 1);
 
 `ifndef VERILATOR
-  $dumpfile("mycore_tb.vcd");
-  $dumpvars();
+    $dumpfile("mycore_tb.vcd");
+    $dumpvars();
 `else
-  $dumpfile("mycore_tb.verilator.fst");
-  $dumpvars();
+    $dumpfile("mycore_tb.verilator.fst");
+    $dumpvars();
 `endif
 end
 
@@ -217,7 +217,7 @@ initial #0 begin
     reset = 0;
 end
 
-initial @(negedge reset) #(500e3) begin
+initial @(negedge reset) #(210e3) begin
     $finish;
 end
 

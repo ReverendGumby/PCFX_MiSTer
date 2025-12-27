@@ -109,7 +109,7 @@ initial cpu_ce = 0;
 
 always @(posedge clk_cpu) begin
   cpu_ce <= ~cpu_ce;
-  reset_cpu <= reset | &fc;
+  reset_cpu <= reset /*| &fc*/;
 end
 
 always @(posedge clk_cpu) if (cpu_ce) begin
@@ -276,9 +276,9 @@ always @(posedge clk_sys) begin
 end
 
 always @(posedge clk_sys) begin
-    pix[23:16] <= {a[31], vdc0_vd[8], vdc1_vd[8], a[6:2]};
-    pix[15:8]  <= {vdc0_vd[0], vdc0_vd[1], vdc0_vd[2], vdc0_vd[3], vdc0_vd[4], vdc0_vd[5], vdc0_vd[6], vdc0_vd[7]};
-    pix[7:0]   <= {vdc1_vd[0], vdc1_vd[1], vdc1_vd[2], vdc1_vd[3], vdc1_vd[4], vdc1_vd[5], vdc1_vd[6], vdc1_vd[7]};
+    pix[23:16] <= a[31:24];
+    pix[15:8]  <= a[15:8];
+    pix[7:0]   <= a[7:0];
 end
 
 assign R = pix[23:16];

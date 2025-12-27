@@ -16,6 +16,7 @@ module fx_ga
    input [31:0]  A,
    input [15:0]  DI,
    output [15:0] DO,
+   input [3:0]   BEn,
    input [1:0]   ST,
    input         DAn,
    input         MRQn,
@@ -30,19 +31,24 @@ module fx_ga
    output        IO_CEn,
 
    output        FX_GA_CSn,
-   output        HUC6261_CSn,
+   output        PSG_CSn,
+   output        VPU_CSn,
+   output        VCE_CSn,
    output        VDC0_CSn,
    output        VDC1_CSn,
+   output        MMC_CSn,
 
    // Memory control
    input         ROM_READYn,
    input         RAM_READYn,
 
    // Device control
+   output [30:1] IOA,
    output        WRn,
    output        RDn,
    input         VDC0_BUSYn,
    input         VDC1_BUSYn,
+   input         MMC_BUSYn,
 
    // Device interrupts
    input [3:0]   DINT,
@@ -71,18 +77,26 @@ assign IO_CEn = ~((MRQn | (A[31:28] == 4'h8)) & (~BCYSTn | ~DAn)
                   & (ST == 2'b10));
 assign unk_cen = ~(RAM_CEn & ROM_CEn & IO_CEn);
 
-assign FX_GA_CSn = IO_CEn | ~(HUC6261_CSn & VDC0_CSn & VDC1_CSn);
+assign FX_GA_CSn = ~(~IO_CEn & (A[30:12] == 19'h00000)) |
+                   ~(PSG_CSn & VPU_CSn & VCE_CSn & VDC0_CSn &
+                     VDC1_CSn & MMC_CSn);
 
-assign HUC6261_CSn   = ~(~IO_CEn & (A[27:8] == 20'h00003));
-assign VDC0_CSn = ~(~IO_CEn & (A[27:8] == 20'h00004));
-assign VDC1_CSn = ~(~IO_CEn & (A[27:8] == 20'h00005));
+assign PSG_CSn  = ~(~IO_CEn & (A[27:8] == 20'h00001)); // HuC6230
+assign VPU_CSn  = ~(~IO_CEn & (A[27:8] == 20'h00002)); // HuC6271
+assign VCE_CSn  = ~(~IO_CEn & (A[27:8] == 20'h00003)); // HuC6261
+assign VDC0_CSn = ~(~IO_CEn & (A[27:8] == 20'h00004)); // HuC6270 #0
+assign VDC1_CSn = ~(~IO_CEn & (A[27:8] == 20'h00005)); // HuC6270 #1
+assign MMC_CSn  = ~(~IO_CEn & (A[27:8] == 20'h00006)); // HuC6272
 
+assign IOA[30:2] = A[30:2];
+assign IOA[1] = A[1] | (BEn == 4'b0011);
 assign WRn = IO_CEn | DAn | RW;
 assign RDn = IO_CEn | DAn | ~RW;
 
 always @* begin
     if (~VDC0_CSn)              io_readyn = ~VDC0_BUSYn;
     else if (~VDC1_CSn)         io_readyn = ~VDC1_BUSYn;
+    else if (~MMC_CSn)          io_readyn = ~MMC_BUSYn;
     else                        io_readyn = IO_CEn;
 end
 

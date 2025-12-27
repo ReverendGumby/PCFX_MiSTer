@@ -42,8 +42,6 @@
 [treeopen] mycore_tb.mycore.mach.cpu.
 [treeopen] mycore_tb.mycore.mach.cpu.eu.
 [treeopen] mycore_tb.mycore.mach.ga.
-[treeopen] mycore_tb.mycore.mach.huc6261.
-[treeopen] mycore_tb.mycore.mach.huc6270_0.
 [sst_width] 255
 [signals_width] 246
 [sst_expanded] 1
