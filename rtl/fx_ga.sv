@@ -26,6 +26,7 @@ module fx_ga
    output        SZRQn,
 
    // Address decoder
+   output        A1_16,
    output        ROM_CEn,
    output        RAM_CEn,
    output        IO_CEn,
@@ -43,7 +44,6 @@ module fx_ga
    input         RAM_READYn,
 
    // Device control
-   output [30:1] IOA,
    output        WRn,
    output        RDn,
    input         VDC0_BUSYn,
@@ -71,6 +71,10 @@ assign SZRQn = ~unk_cen | (ROM_CEn & IO_CEn);
 //////////////////////////////////////////////////////////////////////
 // Address decoder / device control
 
+// Assert A[1] for upper-halfword or -byte access to 16-bit memory /
+// IO, i.e., if one or both of BEn[3:2] are asserted.
+assign A1_16 = A[1] | (~&BEn[3:2] & &BEn[1:0]);
+
 assign ROM_CEn = ~(~MRQn & (A[31:28] == 4'hF));
 assign RAM_CEn = ~(~MRQn & (A[31:24] == 8'h00));
 assign IO_CEn = ~((MRQn | (A[31:28] == 4'h8)) & (~BCYSTn | ~DAn)
@@ -88,8 +92,6 @@ assign VDC0_CSn = ~(~IO_CEn & (A[27:8] == 20'h00004)); // HuC6270 #0
 assign VDC1_CSn = ~(~IO_CEn & (A[27:8] == 20'h00005)); // HuC6270 #1
 assign MMC_CSn  = ~(~IO_CEn & (A[27:8] == 20'h00006)); // HuC6272
 
-assign IOA[30:2] = A[30:2];
-assign IOA[1] = A[1] | (BEn == 4'b0011);
 assign WRn = IO_CEn | DAn | RW;
 assign RDn = IO_CEn | DAn | ~RW;
 

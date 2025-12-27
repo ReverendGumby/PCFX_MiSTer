@@ -55,6 +55,9 @@ logic           ram_cen;
 wire [31:0]     ram_do;
 logic           ram_readyn;
 
+logic           a1_16;
+logic [31:0]    mem16_a;
+
 logic           io_cen;
 logic [15:0]    io_do;
 wire [3:0]      io_int;
@@ -84,7 +87,6 @@ wire [15:0]     vram1_a;
 wire [15:0]     vram1_di, vram1_do;
 wire            vram1_we;
 
-logic [30:1]    ga_ioa;
 logic           ga_wrn, ga_rdn;
 logic           ga_csn;
 logic [15:0]    ga_do;
@@ -159,6 +161,7 @@ fx_ga ga
      .READYn(cpu_readyn),
      .SZRQn(cpu_szrqn),
 
+     .A1_16(a1_16),
      .ROM_CEn(rom_cen),
      .RAM_CEn(ram_cen),
      .IO_CEn(io_cen),
@@ -174,7 +177,6 @@ fx_ga ga
      .ROM_READYn(rom_readyn),
      .RAM_READYn(ram_readyn),
 
-     .IOA(ga_ioa),
      .WRn(ga_wrn),
      .RDn(ga_rdn),
      .VDC0_BUSYn(vdc0_busyn),
@@ -197,7 +199,7 @@ huc6261 vce
      .CSn(vce_csn),
      .WRn(ga_wrn),
      .RDn(ga_rdn),
-     .A2(ga_ioa[2]),
+     .A2(mem16_a[2]),
      .DI(cpu_d_o[15:0]),
      .DO(vce_do),
 
@@ -217,7 +219,7 @@ huc6270 vdc0
      .CPU_CE(CE),
 
      .BYTEWORD('0),
-     .A({ga_ioa[2], 1'b0}),
+     .A({mem16_a[2], 1'b0}),
      .DI(cpu_d_o[15:0]),
      .DO(vdc0_do),
      .CS_N(vdc0_csn),
@@ -271,7 +273,7 @@ huc6270 vdc1
      .CPU_CE(CE),
 
      .BYTEWORD('0),
-     .A({ga_ioa[2], 1'b0}),
+     .A({mem16_a[2], 1'b0}),
      .DI(cpu_d_o[15:0]),
      .DO(vdc1_do),
      .CS_N(vdc1_csn),
@@ -323,7 +325,7 @@ huc6272 mmc
      .RESn(RESn),
      .CE(CE),
 
-     .A(ga_ioa[2:1]),
+     .A(mem16_a[2:1]),
      .DI(cpu_d_o[15:0]),
      .DO(mmc_do),
      .CSn(mmc_csn),
@@ -412,11 +414,13 @@ assign ram_do = RAM_DO;
 assign ram_readyn = ram_cen | RAM_READYn;
 assign CPU_BCYSTn = cpu_bcystn;
 
+assign mem16_a = {cpu_a[31:2], a1_16, 1'b0};
+
 //////////////////////////////////////////////////////////////////////
 // Core memory interface
 
 assign ROM_CEn = rom_cen;
-assign ROM_A = cpu_a[19:0];
+assign ROM_A = mem16_a[19:0];
 
 assign RAM_CEn = ram_cen;
 assign RAM_A = cpu_a[20:0];
