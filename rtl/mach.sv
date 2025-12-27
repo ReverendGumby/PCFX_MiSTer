@@ -248,15 +248,15 @@ huc6270 vdc0
      .SPR_EN('1)
      );
 
-dpram #(.addr_width(15), .data_width(16), .disable_value(0)) vram0
+dpram #(.addr_width(16), .data_width(16), .disable_value(0)) vram0
     (
      .clock(CLK),
-     .address_a(vram0_a[14:0]),
+     .address_a(vram0_a),
      .data_a(vram0_do),
      .enable_a('1),
      .wren_a(vram0_we),
      .q_a(vram0_di),
-     .cs_a(~vram0_a[15]),
+     .cs_a('1),
      .address_b('0),
      .data_b('0),
      .enable_b('1),
@@ -302,15 +302,15 @@ huc6270 vdc1
      .SPR_EN('1)
      );
 
-dpram #(.addr_width(15), .data_width(16), .disable_value(0)) vram1
+dpram #(.addr_width(16), .data_width(16), .disable_value(0)) vram1
     (
      .clock(CLK),
-     .address_a(vram1_a[14:0]),
+     .address_a(vram1_a),
      .data_a(vram1_do),
      .enable_a('1),
      .wren_a(vram1_we),
      .q_a(vram1_di),
-     .cs_a(~vram1_a[15]),
+     .cs_a('1),
      .address_b('0),
      .data_b('0),
      .enable_b('1),

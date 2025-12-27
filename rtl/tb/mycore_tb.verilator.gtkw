@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sat Dec 27 00:06:33 2025
+[*] Sat Dec 27 06:35:36 2025
 [*]
 [dumpfile] "/Users/dhunter/src/mister/Test_V810_MiSTer/rtl/tb/mycore_tb.verilator.fst"
-[dumpfile_mtime] "Sat Dec 27 00:04:34 2025"
-[dumpfile_size] 23202818
+[dumpfile_mtime] "Sat Dec 27 06:14:13 2025"
+[dumpfile_size] 89553148
 [savefile] "/Users/dhunter/src/mister/Test_V810_MiSTer/rtl/tb/mycore_tb.verilator.gtkw"
-[timestart] 184525900
-[size] 1333 600
+[timestart] 317280000
+[size] 1334 601
 [pos] -1 -1
-*-15.592772 184606540 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-22.047163 324364180 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -41,6 +41,7 @@
 [treeopen] mycore_tb.mycore.mach.
 [treeopen] mycore_tb.mycore.mach.cpu.eu.
 [treeopen] mycore_tb.mycore.mach.vce.
+[treeopen] mycore_tb.mycore.mach.vdc1.SAT.
 [sst_width] 255
 [signals_width] 410
 [sst_expanded] 1
@@ -51,6 +52,9 @@ mycore_tb.mycore.mach.cpu_d_i[31:0]
 mycore_tb.mycore.mach.cpu_d_o[31:0]
 @28
 mycore_tb.mycore.mach.cpu_rw
+@22
+mycore_tb.mycore.mach.mem16_a[31:0]
+@28
 mycore_tb.mycore.mach.ram_cen
 mycore_tb.mycore.mach.rom_cen
 mycore_tb.mycore.mach.io_cen
@@ -60,8 +64,45 @@ mycore_tb.mycore.mach.ga_wrn
 -cpu
 @28
 mycore_tb.mycore.mach.cpu.INT
-@22
+@c00022
 mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+@28
+(0)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(1)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(2)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(3)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(4)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(5)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(6)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(7)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(8)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(9)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(10)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(11)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(12)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(13)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(14)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(15)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(16)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(17)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(18)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(19)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(20)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(21)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(22)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(23)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(24)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(25)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(26)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(27)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(28)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(29)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(30)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+(31)mycore_tb.mycore.mach.cpu.eu.pc[31:0]
+@1401200
+-group_end
+@22
+mycore_tb.mycore.mach.cpu.eu.idex_pc[31:0]
 @28
 mycore_tb.mycore.mach.cpu.SZRQn
 @22
@@ -70,8 +111,6 @@ mycore_tb.mycore.mach.cpu.eu.DA[31:0]
 -ga
 @28
 mycore_tb.mycore.mach.ga.MRQn
-@29
-mycore_tb.mycore.mach.ga.MMC_CSn
 @22
 mycore_tb.mycore.mach.ga.isr[6:0]
 mycore_tb.mycore.mach.ga.imr[6:0]
@@ -86,28 +125,142 @@ mycore_tb.mycore.mach.vce.row[8:0]
 @28
 mycore_tb.mycore.mach.vdc0.CS_N
 @22
+mycore_tb.mycore.mach.vdc0.AR[4:0]
+mycore_tb.mycore.mach.vdc0.REGS[0][15:0]
 mycore_tb.mycore.mach.vdc0.REGS[5][15:0]
 @28
 mycore_tb.mycore.mach.vdc0.IRQ_N
 mycore_tb.mycore.mach.vdc0.BG_OUT
 mycore_tb.mycore.mach.vdc0.VDISP
-@22
+@c00022
 mycore_tb.mycore.mach.vdc0.VD[8:0]
+@28
+(0)mycore_tb.mycore.mach.vdc0.VD[8:0]
+(1)mycore_tb.mycore.mach.vdc0.VD[8:0]
+(2)mycore_tb.mycore.mach.vdc0.VD[8:0]
+(3)mycore_tb.mycore.mach.vdc0.VD[8:0]
+(4)mycore_tb.mycore.mach.vdc0.VD[8:0]
+(5)mycore_tb.mycore.mach.vdc0.VD[8:0]
+(6)mycore_tb.mycore.mach.vdc0.VD[8:0]
+(7)mycore_tb.mycore.mach.vdc0.VD[8:0]
+(8)mycore_tb.mycore.mach.vdc0.VD[8:0]
+@1401200
+-group_end
+@22
+mycore_tb.mycore.mach.vdc0.DMAS_SAT_ADDR[7:0]
+mycore_tb.mycore.mach.vdc0.SAT_ADDR[7:0]
+mycore_tb.mycore.mach.vdc0.SAT_Q[15:0]
+mycore_tb.mycore.mach.vdc0.SPR_X[9:0]
+mycore_tb.mycore.mach.vdc0.SPR_Y[9:0]
+@c00022
+mycore_tb.mycore.mach.vdc0.SPR_PC[10:0]
+@28
+(0)mycore_tb.mycore.mach.vdc0.SPR_PC[10:0]
+(1)mycore_tb.mycore.mach.vdc0.SPR_PC[10:0]
+(2)mycore_tb.mycore.mach.vdc0.SPR_PC[10:0]
+(3)mycore_tb.mycore.mach.vdc0.SPR_PC[10:0]
+(4)mycore_tb.mycore.mach.vdc0.SPR_PC[10:0]
+(5)mycore_tb.mycore.mach.vdc0.SPR_PC[10:0]
+(6)mycore_tb.mycore.mach.vdc0.SPR_PC[10:0]
+(7)mycore_tb.mycore.mach.vdc0.SPR_PC[10:0]
+(8)mycore_tb.mycore.mach.vdc0.SPR_PC[10:0]
+(9)mycore_tb.mycore.mach.vdc0.SPR_PC[10:0]
+(10)mycore_tb.mycore.mach.vdc0.SPR_PC[10:0]
+@1401200
+-group_end
+@22
+mycore_tb.mycore.mach.vdc0.SPR[44:0]
+@c00022
+mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+@28
+(0)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(1)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(2)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(3)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(4)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(5)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(6)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(7)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(8)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(9)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(10)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(11)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(12)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(13)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(14)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+(15)mycore_tb.mycore.mach.vdc0.SPR_RAM_ADDR[15:0]
+@1401200
+-group_end
+@22
+mycore_tb.mycore.mach.vdc0.SLOT[3:0]
+@c00023
+mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+@28
+(0)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(1)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(2)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(3)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(4)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(5)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(6)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(7)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(8)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(9)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(10)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(11)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(12)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(13)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(14)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+(15)mycore_tb.mycore.mach.vdc0.RAM_A[15:0]
+@1401201
+-group_end
+@22
+mycore_tb.mycore.mach.vdc0.RAM_DI[15:0]
+mycore_tb.mycore.mach.vdc0.RAM_DO[15:0]
+@28
+mycore_tb.mycore.mach.vdc0.RAM_WE
+@22
+mycore_tb.mycore.mach.vdc0.REGS[2][15:0]
+mycore_tb.mycore.mach.vdc0.CPU_VRAM_DATA[15:0]
+@28
+mycore_tb.mycore.mach.vdc0.SPR_CE
+mycore_tb.mycore.mach.vdc0.SPR_FETCH
+mycore_tb.mycore.mach.vdc0.SPR_FIND
+@22
+mycore_tb.mycore.mach.vdc0.SPR_CH0[15:0]
+mycore_tb.mycore.mach.vdc0.SPR_TILE_P0[15:0]
+mycore_tb.mycore.mach.vdc0.SPR_TILE_P1[15:0]
 @200
 -vdc1
 @28
 mycore_tb.mycore.mach.vdc1.CS_N
+@22
+mycore_tb.mycore.mach.vdc1.REGS[5][15:0]
+@28
 mycore_tb.mycore.mach.vdc1.BG_OUT
 mycore_tb.mycore.mach.vdc1.VDISP
-@22
+@c00022
 mycore_tb.mycore.mach.vdc1.VD[8:0]
+@28
+(0)mycore_tb.mycore.mach.vdc1.VD[8:0]
+(1)mycore_tb.mycore.mach.vdc1.VD[8:0]
+(2)mycore_tb.mycore.mach.vdc1.VD[8:0]
+(3)mycore_tb.mycore.mach.vdc1.VD[8:0]
+(4)mycore_tb.mycore.mach.vdc1.VD[8:0]
+(5)mycore_tb.mycore.mach.vdc1.VD[8:0]
+(6)mycore_tb.mycore.mach.vdc1.VD[8:0]
+(7)mycore_tb.mycore.mach.vdc1.VD[8:0]
+(8)mycore_tb.mycore.mach.vdc1.VD[8:0]
+@1401200
+-group_end
 @200
 -mmc
 @28
+mycore_tb.mycore.mach.mmc.CSn
 mycore_tb.mycore.mach.mmc.A[2:1]
 @22
 mycore_tb.mycore.mach.mmc.rsel[6:0]
-@800200
+@c00200
 -scsi
 @c00022
 mycore_tb.mycore.mach.mmc.SCSI_DI[7:0]
@@ -168,7 +321,7 @@ mycore_tb.mycore.mach.scsi_cd.CD_WR
 mycore_tb.mycore.mach.scsi_cd.CD_DATA[7:0]
 @28
 mycore_tb.mycore.mach.scsi_cd.CD_DATA_END
-@1000200
+@1401200
 -scsi
 [pattern_trace] 1
 [pattern_trace] 0
