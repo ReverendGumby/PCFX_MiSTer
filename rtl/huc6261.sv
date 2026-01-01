@@ -43,20 +43,11 @@ module huc6261
      output        HBL
      );
 
-/* -----\/----- EXCLUDED -----\/-----
-// From huc6260 (TurboGrafx16); CLK = 42.954545 MHz
 localparam [11:0] LEFT_BL_CLOCKS = 12'd456;
 localparam [11:0] DISP_CLOCKS = 12'd2160;
 localparam [11:0] LINE_CLOCKS = 12'd2730;
 localparam [11:0] HS_CLOCKS = 12'd192;
 localparam [11:0] HS_OFF = 12'd46;
- -----/\----- EXCLUDED -----/\----- */
-// Adjusted for CLK = 50 MHz with PCE = 5 MHz
-localparam [11:0] LEFT_BL_CLOCKS = 12'd530;
-localparam [11:0] DISP_CLOCKS = 12'd2515;
-localparam [11:0] LINE_CLOCKS = 12'd3180;
-localparam [11:0] HS_CLOCKS = 12'd225;
-localparam [11:0] HS_OFF = 12'd55;
 
 localparam [8:0] TOTAL_LINES = 9'd263;
 localparam [8:0] VS_LINES = 9'd3;
@@ -141,25 +132,6 @@ end
 assign DO = (~CSn & ~RDn) ? dout : '0;
 
 //////////////////////////////////////////////////////////////////////
-// Pixel clock generator
-//
-// CE is assumed to be 25 MHz.
-// PCE = CE / 5 --> 5 MHz
-
-logic [2:0]     pcnt;
-logic           pcnt_wrap;
-
-initial pcnt = '0;
-
-always @(posedge CLK) if (CE) begin
-    pcnt <= pcnt_wrap ? '0 : pcnt + 1'd1;
-end
-
-assign pcnt_wrap = pcnt == 3'd4;
-assign PCE = CE & pcnt_wrap;
-assign PCE_NEGEDGE = CE & ~|pcnt; // TODO: Should be 180deg after PCE
-
-//////////////////////////////////////////////////////////////////////
 // Video counter
 
 wire h_wrap = h_cnt == (LINE_CLOCKS - 1'd1);
@@ -183,8 +155,34 @@ always @(posedge CLK) begin
     end
 end
 
-localparam [11:0] HSYNC_START_POS = 11'd8 - 1'd1;
-localparam [11:0] HSYNC_END_POS = 11'd8 + 11'd540 - 1'd1;
+//////////////////////////////////////////////////////////////////////
+// Pixel clock generator
+
+logic [2:0]     clken_cnt;
+logic           clken, clken_ne;
+
+always @(posedge CLK) begin
+    clken <= '0;
+    clken_ne <= '0;
+
+    if (~RESn) begin
+        clken_cnt <= '0;
+    end
+    else begin
+        clken_cnt <= clken_cnt + 1'd1;
+
+        if (((clken_cnt == 3'd7) & (h_cnt < (LINE_CLOCKS - 12'd2 - 12'd1)))
+            | h_wrap) begin
+            clken_cnt <= '0;
+            clken <= '1;
+        end
+        if (clken_cnt == 3'd3)
+            clken_ne <= '1;
+    end
+end
+
+assign PCE = clken;
+assign PCE_NEGEDGE = clken_ne;
 
 //////////////////////////////////////////////////////////////////////
 // Video mixer
@@ -239,14 +237,17 @@ dpram #(.addr_width(9), .data_width(16)) cpram
 //////////////////////////////////////////////////////////////////////
 // Sync generators
 
+localparam [11:0] HSYNC_START_POS = 11'd8 - 1'd1;
+localparam [11:0] HSYNC_END_POS = 11'd8 + 11'd464 - 1'd1;
+
 logic           hbl_ff, vbl_ff;
 
 // These syncs are for the VDCs.
 always @(posedge CLK) begin
-    HSYNC_NEGEDGE <= (HSYNC_NEGEDGE & ~PCE) | (h_cnt == HSYNC_START_POS);
-    HSYNC_POSEDGE <= (HSYNC_POSEDGE & ~PCE) | (h_cnt == HSYNC_END_POS);
-    VSYNC_NEGEDGE <= (VSYNC_NEGEDGE & ~PCE) | ((v_cnt == VS_LINES - 1'd1) & h_wrap);
-    VSYNC_POSEDGE <= (VSYNC_POSEDGE & ~PCE) | (v_wrap & h_wrap);
+    HSYNC_NEGEDGE <= (h_cnt == HSYNC_START_POS);
+    HSYNC_POSEDGE <= (h_cnt == HSYNC_END_POS);
+    VSYNC_NEGEDGE <= ((v_cnt == VS_LINES - 1'd1) & h_wrap);
+    VSYNC_POSEDGE <= (v_wrap & h_wrap);
 end
 
 // These syncs are for the actual video output.
