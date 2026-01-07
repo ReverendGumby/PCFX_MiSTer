@@ -156,9 +156,9 @@ v810 cpu
      );
 
 assign io_int[0] = '0; //huc6273_int;
-assign io_int[1] = ~vdc1_irqn;
-assign io_int[2] = ~mmc_irqn;
-assign io_int[3] = ~vdc0_irqn;
+assign io_int[1] = '0; //~vdc1_irqn;
+assign io_int[2] = '0; //~mmc_irqn;
+assign io_int[3] = '0; //~vdc0_irqn;
 
 fx_ga ga
     (
@@ -196,9 +196,9 @@ fx_ga ga
 
      .WRn(ga_wrn),
      .RDn(ga_rdn),
-     .VDC0_BUSYn(vdc0_busyn),
-     .VDC1_BUSYn(vdc1_busyn),
-     .MMC_BUSYn(mmc_busyn),
+     .VDC0_BUSYn('1),
+     .VDC1_BUSYn('1),
+     .MMC_BUSYn('1),
 
      .DINT(io_int),
 
@@ -213,6 +213,7 @@ fx_ga ga
      .KP_DOUT(kp_dout)
      );
 
+/* -----\/----- EXCLUDED -----\/-----
 huc6261 vce
     (
      .RESn(RESn),
@@ -411,6 +412,7 @@ scsi scsi_cd
      .STOP_CD_SND(),
      .DBG_DATAIN_CNT()
      );
+ -----/\----- EXCLUDED -----/\----- */
 
 //////////////////////////////////////////////////////////////////////
 // CPU memory / I/O bus
@@ -462,6 +464,7 @@ assign RAM_DI = cpu_d_o;
 assign RAM_WEn = cpu_rw;
 assign RAM_BEn = cpu_ben;
 
+/* -----\/----- EXCLUDED -----\/-----
 //////////////////////////////////////////////////////////////////////
 // SCSI interface
 
@@ -503,21 +506,13 @@ hmi2kp hmi2kp
      .KP_DIN(kp_din),
      .KP_DOUT(kp_dout)
      );
+ -----/\----- EXCLUDED -----/\----- */
 
 //////////////////////////////////////////////////////////////////////
 
 assign A = cpu_a;
-assign VID_PCE = pce;
+//assign VID_PCE = pce;
 
 //////////////////////////////////////////////////////////////////////
-
-always @(posedge CLK) if (1 && CE) begin
-    if (~io_cen & ~cpu_dan)
-        $display("%t: %x %s %x", $realtime,A, (cpu_rw ? "R" : "w"), 
-                 (cpu_rw ? cpu_d_i[15:0] : cpu_d_o[15:0]));
-end
-
-always @cpu_int
-    $display("!! cpu_int=%x", cpu_int);
 
 endmodule

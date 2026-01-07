@@ -7,7 +7,7 @@
 `timescale 1us / 1ns
 
 //`define USE_IOCTL_FOR_LOAD 1
-`define SAVE_FRAMES 1
+//`define SAVE_FRAMES 1
 
 import core_pkg::hmi_t;
 
@@ -24,7 +24,7 @@ initial begin
     $dumpvars();
 `else
     $dumpfile("mycore_tb.verilator.fst");
-    #(418e3) $dumpvars();
+    $dumpvars();
 `endif
 end
 
@@ -273,7 +273,7 @@ initial #0 begin
     reset = 0;
 end
 
-initial #(500e3) begin
+initial #(50e3) begin
     //$writememh("vram0.hex", mycore.mach.vram0.mem);
     //$writememh("vram1.hex", mycore.mach.vram1.mem);
     //$writememh("vce_cp.hex", mycore.mach.vce.cpram.mem);
