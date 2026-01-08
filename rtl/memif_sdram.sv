@@ -43,6 +43,8 @@ module memif_sdram
 // CPU cycles or 2 wait states. Coincidentally, that's the correct
 // timing for PC-FX.
 
+logic [15:0]    rom_do;
+logic [31:0]    ram_do;
 logic           rom_start_req, ram_start_req, mem_start_req;
 logic           ract = '0;
 logic           wact = '0;
@@ -95,10 +97,17 @@ always @(posedge CPU_CLK) if (CPU_CE) begin
     ram_readyn <= RAM_CEn | ~((ract & SDRAM_RD_RDY) | (wact & SDRAM_WE_RDY));
 end
 
-assign ROM_DO = SDRAM_DOUT[15:0];
+// SDRAM_DOUT is in the SDRAM_CLK domain. Latching into the CPU_CLK
+// domain helps close timing.
+always @(posedge CPU_CLK) if (CPU_CE) begin
+    rom_do <= SDRAM_DOUT[15:0];
+    ram_do <= SDRAM_DOUT[31:0];
+end
+
+assign ROM_DO = rom_do;
 assign ROM_READYn = rom_readyn;
 
-assign RAM_DO = SDRAM_DOUT[31:0];
+assign RAM_DO = ram_do;
 assign RAM_READYn = ram_readyn;
 
 always @* begin
