@@ -24,7 +24,7 @@ initial begin
     $dumpvars();
 `else
     $dumpfile("pcfx_top_tb.verilator.fst");
-    #(0e3) $dumpvars();
+    #(4800e3) $dumpvars();
 `endif
 end
 
@@ -271,8 +271,8 @@ initial #0 begin
 end
 
 initial begin
-    #(418e3) ;
-    //repeat (15) #(1000e3) ;
+    repeat (5) #(1000e3) ;
+    #(100e3) ;
     //$writememh("vram0.hex", pcfx_top.mach.vram0.mem);
     //$writememh("vram1.hex", pcfx_top.mach.vram1.mem);
     //$writememh("vce_cp.hex", pcfx_top.mach.vce.cpram.mem);
@@ -285,18 +285,18 @@ initial if (1) begin
 
     $display("Pressing JP1.Left...");
     hmi.jp1.l = '1;
-    #(2600e3) hmi.jp1.l = '0;
+    #(1300e3) hmi.jp1.l = '0;
     #(40e3);
 
     $display("Pressing JP1.Up...");
     hmi.jp1.u = '1;
     #(40e3) hmi.jp1.u = '0;
-    #(80e3);
+    #(40e3);
 
     $display("Pressing JP1.Run...");
     hmi.jp1.run = '1;
     #(40e3) hmi.jp1.run = '0;
-    #(80e3);
+    #(40e3);
 end
 
 endmodule

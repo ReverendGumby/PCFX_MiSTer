@@ -112,6 +112,7 @@ wire            vram1_we;
 logic           ga_wrn, ga_rdn;
 logic           ga_csn;
 logic [15:0]    ga_do;
+logic           vdc_cpu_ce;
 
 logic           pce, pce_negedge;
 logic           hs_posedge, hs_negedge;
@@ -208,6 +209,7 @@ fx_ga ga
 
      .WRn(ga_wrn),
      .RDn(ga_rdn),
+     .VDC_CPU_CE(vdc_cpu_ce),
      .VDC0_BUSYn(vdc0_busyn),
      .VDC1_BUSYn(vdc1_busyn),
      .MMC_BUSYn(mmc_busyn),
@@ -262,7 +264,7 @@ huc6270 vdc0
      .CLK(CLK),
      .RST_N(RESn),
      .CLR_MEM('0),
-     .CPU_CE(CE),
+     .CPU_CE(vdc_cpu_ce),
 
      .BYTEWORD('0),
      .A({mem16_a[2], 1'b0}),
@@ -316,7 +318,7 @@ huc6270 vdc1
      .CLK(CLK),
      .RST_N(RESn),
      .CLR_MEM('0),
-     .CPU_CE(CE),
+     .CPU_CE(vdc_cpu_ce),
 
      .BYTEWORD('0),
      .A({mem16_a[2], 1'b0}),
@@ -527,10 +529,16 @@ assign VID_PCE = pce;
 
 //////////////////////////////////////////////////////////////////////
 
-always @(posedge CLK) if (1 && CE) begin
+always @(posedge CLK) if (0 && CE) begin
     if (~io_cen & ~cpu_dan)
         $display("%t: %x %s %x", $realtime,A, (cpu_rw ? "R" : "w"), 
                  (cpu_rw ? cpu_d_i[15:0] : cpu_d_o[15:0]));
+end
+
+always @(posedge CLK) if (1 && CE) begin
+    if (~cpu_bcystn & ~cpu_mrqn &
+        ((cpu_a == 32'hFFFFFF90) | (cpu_a == 32'hFFFFFFD0)))
+        $finish(1);
 end
 
 always @(sram_cen)

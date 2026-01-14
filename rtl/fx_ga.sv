@@ -47,6 +47,7 @@ module fx_ga
    // Device control
    output        WRn,
    output        RDn,
+   output        VDC_CPU_CE,
    input         VDC0_BUSYn,
    input         VDC1_BUSYn,
    input         MMC_BUSYn,
@@ -77,7 +78,7 @@ assign READYn = unk_cen & ROM_READYn & RAM_READYn & io_readyn;
 assign SZRQn = ~unk_cen | (ROM_CEn & IO_CEn);
 
 //////////////////////////////////////////////////////////////////////
-// Address decoder / device control
+// Address decoder
 
 // Assert A[1] for upper-halfword or -byte access to 16-bit memory /
 // IO, i.e., if one or both of BEn[3:2] are asserted.
@@ -101,15 +102,62 @@ assign VDC0_CSn = ~(~IO_CEn & (A[27:8] == 20'h00004)); // HuC6270 #0
 assign VDC1_CSn = ~(~IO_CEn & (A[27:8] == 20'h00005)); // HuC6270 #1
 assign MMC_CSn  = ~(~IO_CEn & (A[27:8] == 20'h00006)); // HuC6272
 
-assign WRn = IO_CEn | DAn | RW;
-assign RDn = IO_CEn | DAn | ~RW;
+//////////////////////////////////////////////////////////////////////
+// I/O device control
+
+logic           io_wait;
+logic [2:0]     io_wait_cnt;
+logic           vdc_busy_end;
+
+assign WRn = IO_CEn | vdc_busy_end | DAn | RW;
+assign RDn = IO_CEn | vdc_busy_end | DAn | ~RW;
+
+// FXGABOAD says: "Write access to normal I/O requires six cycles," or
+// 4 wait states.  Assume that read access does, too.
+//
+// TODO: Implement Huc* write buffer.
+
+always @(posedge CLK) if (CE) begin
+    if (~RESn) begin
+        io_wait_cnt <= '0;
+    end
+    else begin
+        if (io_wait)            // I/O cycle in progress
+            io_wait_cnt <= io_wait_cnt - 1'd1;
+        else if (~IO_CEn & ~BCYSTn) // New I/O cycle start
+            io_wait_cnt <= 3'd4;
+    end
+end
+
+assign io_wait = |io_wait_cnt;
 
 always @* begin
     if (~VDC0_CSn)              io_readyn = ~VDC0_BUSYn;
     else if (~VDC1_CSn)         io_readyn = ~VDC1_BUSYn;
     else if (~MMC_CSn)          io_readyn = ~MMC_BUSYn;
     else                        io_readyn = IO_CEn;
+
+    io_readyn |= io_wait;
 end
+
+// huc6270.vhd inputs a signal that never existed in actual hardware:
+// the internal clock enable of the CPU.  It uses this to determine
+// when the I/O bus cycle completes.  (Actual HW would instead use the
+// de-assertion of RDn / WRn for this purpose.)
+assign VDC_CPU_CE = CE & ~io_readyn;
+
+// huc6270.vhd assumes that, when it de-asserts BUSYn, RDn / WRn will
+// de-assert in the next clock cycle, regardless of CE.  But, CPU will
+// only act on BUSYn and then change RDn / WRn on CE.  This workaround
+// de-asserts RDn / WRn early, then resets when DAn de-asserts (CPU
+// ends bus cycle).
+wire vdc_busy = ~io_wait & (~VDC0_BUSYn | ~VDC1_BUSYn);
+logic vdc_busy_d;
+always @(posedge CLK) begin
+    vdc_busy_d <= vdc_busy;
+    vdc_busy_end <= (vdc_busy_end | (vdc_busy_d & ~vdc_busy)) & ~(~RESn | DAn);
+end
+
 
 //////////////////////////////////////////////////////////////////////
 // Register interface
