@@ -206,6 +206,7 @@ fx_ga ga
 
      .ROM_READYn(rom_readyn),
      .RAM_READYn(ram_readyn),
+     .SRAM_READYn(sram_readyn),
 
      .WRn(ga_wrn),
      .RDn(ga_rdn),
@@ -483,7 +484,7 @@ assign RAM_WEn = cpu_rw;
 assign RAM_BEn = cpu_ben;
 
 assign SRAM_CEn = sram_cen;
-assign SRAM_A = cpu_a[15:1];
+assign SRAM_A = mem16_a[15:1];
 assign SRAM_DI = cpu_d_o[7:0];
 assign SRAM_WEn = cpu_rw;
 
@@ -540,8 +541,5 @@ always @(posedge CLK) if (1 && CE) begin
         ((cpu_a == 32'hFFFFFF90) | (cpu_a == 32'hFFFFFFD0)))
         $finish(1);
 end
-
-always @(sram_cen)
-    $display("!! %t: sram_cen=%x", $realtime, sram_cen);
 
 endmodule

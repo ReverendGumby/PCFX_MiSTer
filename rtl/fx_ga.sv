@@ -43,6 +43,7 @@ module fx_ga
    // Memory control
    input         ROM_READYn,
    input         RAM_READYn,
+   input         SRAM_READYn,
 
    // Device control
    output        WRn,
@@ -74,7 +75,7 @@ module fx_ga
 logic           unk_cen;
 logic           io_readyn;
 
-assign READYn = unk_cen & ROM_READYn & RAM_READYn & io_readyn;
+assign READYn = unk_cen & ROM_READYn & RAM_READYn & SRAM_READYn & io_readyn;
 assign SZRQn = ~unk_cen | (ROM_CEn & IO_CEn);
 
 //////////////////////////////////////////////////////////////////////
