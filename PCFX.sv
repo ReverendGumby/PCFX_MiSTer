@@ -302,6 +302,7 @@ always @joystick_1
 
 //////////////////////////////////////////////////////////////////////
 
+wire error;
 wire HBlank;
 wire HSync;
 wire VBlank;
@@ -336,6 +337,8 @@ pcfx_top pcfx_top
     .SDRAM_nRAS(SDRAM_nRAS),
     .SDRAM_nWE(SDRAM_nWE),
 
+    .ERROR(error),
+
 	.ce_pix(ce_pix),
 
 	.HBlank(HBlank),
@@ -355,8 +358,6 @@ assign VGA_DE = ~(HBlank | VBlank);
 assign VGA_HS = HSync;
 assign VGA_VS = VSync;
 
-reg  [26:0] act_cnt;
-always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1; 
-assign LED_USER    = act_cnt[26]  ? act_cnt[25:18]  > act_cnt[7:0]  : act_cnt[25:18]  <= act_cnt[7:0];
+assign LED_USER    = error;
 
 endmodule

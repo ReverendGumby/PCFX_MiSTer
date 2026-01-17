@@ -34,6 +34,8 @@ module pcfx_top
 	output        SDRAM_nRAS,
 	output        SDRAM_nWE,
 
+    output        ERROR,
+
     output reg    ce_pix,
 
 	output reg    HBlank,
@@ -162,6 +164,7 @@ mach mach
    .HMI(HMI),
 
    .A(a),
+   .ERROR(ERROR),
 
    .VID_PCE(vid_pce),
    .VID_Y(vid_y),

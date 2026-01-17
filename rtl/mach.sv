@@ -39,6 +39,7 @@ module mach
    input         hmi_t HMI,
 
    output [31:0] A,
+   output reg    ERROR,
 
    output        VID_PCE,
    output [7:0]  VID_Y,
@@ -480,13 +481,20 @@ assign ROM_A = mem16_a[19:0];
 assign RAM_CEn = ram_cen;
 assign RAM_A = cpu_a[20:0];
 assign RAM_DI = cpu_d_o;
-assign RAM_WEn = cpu_rw;
+assign RAM_WEn = ram_cen | cpu_rw;
 assign RAM_BEn = cpu_ben;
 
 assign SRAM_CEn = sram_cen;
 assign SRAM_A = mem16_a[15:1];
 assign SRAM_DI = cpu_d_o[7:0];
-assign SRAM_WEn = cpu_rw;
+assign SRAM_WEn = sram_cen | cpu_rw;
+
+/* -----\/----- EXCLUDED -----\/-----
+assign EXTSRAM_CEn = extsram_cen;
+assign EXTSRAM_A = mem16_a[15:1];
+assign EXTSRAM_DI = cpu_d_o[7:0];
+assign EXTSRAM_WEn = extsram_cen | cpu_rw;
+ -----/\----- EXCLUDED -----/\----- */
 
 //////////////////////////////////////////////////////////////////////
 // SCSI interface
@@ -537,9 +545,17 @@ always @(posedge CLK) if (0 && CE) begin
 end
 
 always @(posedge CLK) if (1 && CE) begin
-    if (~cpu_bcystn & ~cpu_mrqn &
-        ((cpu_a == 32'hFFFFFF90) | (cpu_a == 32'hFFFFFFD0)))
-        $finish(1);
+    if (~RESn) begin
+        ERROR <= '0;
+    end
+    else begin
+        if (~cpu_bcystn & ~cpu_mrqn &
+            ((cpu_a == 32'hFFFFFF90) | (cpu_a == 32'hFFFFFFD0)))
+            ERROR <= '1;
+    end
 end
+
+always @(posedge ERROR)
+    $finish(1);
 
 endmodule
