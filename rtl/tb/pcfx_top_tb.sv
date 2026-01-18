@@ -88,6 +88,8 @@ pcfx_top pcfx_top
     .SDRAM_nRAS(SDRAM_nRAS),
     .SDRAM_nWE(SDRAM_nWE),
 
+    .ERROR(),
+
 	.ce_pix(pce),
 
 	.HBlank(hbl),
